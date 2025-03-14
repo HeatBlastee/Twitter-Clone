@@ -73,7 +73,7 @@ export const login = async (req, res) => {
     generateTokenAndSetCookie(user._id, res);
     res.status(200).json({
       _id: user._id,
-      fullName: user.fullName,
+      fullname: user.fullname,
       username: user.username,
       email: user.email,
       followers: user.followers,
@@ -86,16 +86,24 @@ export const login = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 export const logout = async (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 });
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV !== "development",
+      path: "/", 
+    });
+
     res.status(200).json({ msg: "Logged out successfully" });
   } catch (error) {
-    console.log("Error in logout controller", error.message);
+    console.error("Error in logout controller:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
+
 
 export const getMe = async (req,res)=>{
   try {

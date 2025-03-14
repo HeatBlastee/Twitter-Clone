@@ -7,6 +7,7 @@ import connectDB from "./db/connectMongoDB.js"
 import userRoutes from "./routes/user.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import postRoutes from "./routes/post.route.js";
+import cors from "cors"
 dotenv.config();
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -19,6 +20,15 @@ const app = express();
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Ensure it matches frontend
+    credentials: true, // Allow cookies
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allow these methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Explicitly allow headers
+  })
+);
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user",userRoutes);

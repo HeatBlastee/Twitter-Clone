@@ -5,23 +5,50 @@ import { useState } from "react";
  
  import { MdOutlineMail } from "react-icons/md";
  import { MdPassword } from "react-icons/md";
+import { useMutation,  useQueryClient } from "@tanstack/react-query";
  
  const LoginPage = () => {
  	const [formData, setFormData] = useState({
  		username: "",
  		password: "",
  	});
- 
+	
+	const queryClient = useQueryClient();
+
+	const {mutate:loginMutation, isPending, isError, error}= useMutation({
+		mutationFn:async({username,password})=>{
+			try {
+				const resp = await fetch("/api/auth/login",{
+					method:"POST",
+					headers:{
+						"Content-Type":"application/json",
+					},
+					body:JSON.stringify({username,password}),
+				});
+
+				const data = await resp.json();
+				if (!resp.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
+			} catch (error) {
+				throw new Error(error);
+			}
+		},
+		onSuccess: () => {
+			// refetch the authUser
+			queryClient.invalidateQueries({ queryKey: ["authUser"] });
+		},
+	})
+
  	const handleSubmit = (e) => {
  		e.preventDefault();
- 		console.log(formData);
+ 		loginMutation(formData);
  	};
  
  	const handleInputChange = (e) => {
  		setFormData({ ...formData, [e.target.name]: e.target.value });
  	};
  
- 	const isError = false;
  
  	return (
  		<div className='max-w-screen-xl mx-auto flex h-screen'>
@@ -55,9 +82,10 @@ import { useState } from "react";
  							value={formData.password}
  						/>
  					</label>
- 					<button className='btn rounded-full btn-primary text-white'>Login</button>
- 					{isError && <p className='text-red-500'>Something went wrong</p>}
- 				</form>
+ 					<button className='btn rounded-full btn-primary text-white'>
+ 						{isPending ? "Loading..." : "Login"}
+ 					</button>
+ 					{isError && <p className='text-red-500'>{error.message}</p>}</form>
  				<div className='flex flex-col gap-2 mt-4'>
  					<p className='text-white text-lg'>{"Don't"} have an account?</p>
  					<Link to='/signup'>
